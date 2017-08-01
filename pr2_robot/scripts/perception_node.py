@@ -49,13 +49,32 @@ def send_to_yaml(yaml_filename, dict_list):
 # Callback function for your Point Cloud Subscriber
 def pcl_callback(pcl_msg):
 
-# Exercise-2 TODOs:
 
-    # TODO: Convert ROS msg to PCL data
+    # Convert ROS msg to PCL data
+    pcl_data = ros_to_pcl(pcl_msg)
 
-    # TODO: Voxel Grid Downsampling
+    # Voxel Grid Downsampling
+    vox = pcl_data.make_voxel_grid_filter()
+    leaf_size = 0.01
+    vox.set_leaf_size(leaf_size, leaf_size, leaf_size)
+    pcl_data = vox.filter()
 
     # TODO: PassThrough Filter
+    passthrough_z = pcl_data.make_passthrough_filter()
+    filter_axis = "z"
+    passthrough_z.set_filter_field_name(filter_axis)
+    axis_min = 0.6
+    axis_max = 0.8
+    passthrough_z.set_filter_limits(axis_min, axis_max)
+    pcl_data = passthrough_z.filter()
+    
+    passthrough_x = pcl_data.make_passthrough_filter()
+    filter_axis = "x"
+    passthrough_x.set_filter_field_name(filter_axis)
+    axis_min = 0.35
+    axis_max = 1.0
+    passthrough_x.set_filter_limits(axis_min, axis_max)
+    pcl_data = passthrough_x.filter()
 
     # TODO: RANSAC Plane Segmentation
 
@@ -66,9 +85,9 @@ def pcl_callback(pcl_msg):
     # TODO: Create Cluster-Mask Point Cloud to visualize each cluster separately
 
     # TODO: Convert PCL data to ROS messages
-
+    ros_pcl_objects = pcl_to_ros(pcl_data)
     # TODO: Publish ROS messages
-    pcl_objects_pub.publish(pcl_msg)
+    pcl_objects_pub.publish(ros_pcl_objects)
 
 # Exercise-3 TODOs:
 

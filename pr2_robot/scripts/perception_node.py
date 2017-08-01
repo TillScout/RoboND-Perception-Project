@@ -76,16 +76,24 @@ def pcl_callback(pcl_msg):
     passthrough_x.set_filter_limits(axis_min, axis_max)
     pcl_data = passthrough_x.filter()
 
-    # TODO: RANSAC Plane Segmentation
+    # RANSAC Plane Segmentation
+    seg = pcl_data.make_segmenter()
+    seg.set_model_type(pcl.SACMODEL_PLANE)
+    seg.set_method_type(pcl.SAC_RANSAC)
+    max_distance = 0.01
+    seg.set_distance_threshold(max_distance)
+    inliers, coefficients = seg.segment()
 
-    # TODO: Extract inliers and outliers
+    # Extract inliers and outliers
+    #pcl_table = pcl_data.extract(inliers, negative=False)
+    pcl_objects = pcl_data.extract(inliers, negative=True)
 
     # TODO: Euclidean Clustering
 
     # TODO: Create Cluster-Mask Point Cloud to visualize each cluster separately
 
     # TODO: Convert PCL data to ROS messages
-    ros_pcl_objects = pcl_to_ros(pcl_data)
+    ros_pcl_objects = pcl_to_ros(pcl_objects)
     # TODO: Publish ROS messages
     pcl_objects_pub.publish(ros_pcl_objects)
 
@@ -162,7 +170,6 @@ if __name__ == '__main__':
 
     # Create Publishers
     pcl_objects_pub = rospy.Publisher("/pcl_objects", PointCloud2, queue_size=1)
-
 
     # TODO: Load Model From disk
 

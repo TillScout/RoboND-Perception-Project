@@ -58,8 +58,8 @@ def pcl_callback(pcl_msg):
     leaf_size = 0.01
     vox.set_leaf_size(leaf_size, leaf_size, leaf_size)
     pcl_data = vox.filter()
-
-    # TODO: PassThrough Filter
+    
+    # PassThrough Filter
     passthrough_z = pcl_data.make_passthrough_filter()
     filter_axis = "z"
     passthrough_z.set_filter_field_name(filter_axis)
@@ -75,6 +75,7 @@ def pcl_callback(pcl_msg):
     axis_max = 1.0
     passthrough_x.set_filter_limits(axis_min, axis_max)
     pcl_data = passthrough_x.filter()
+    
 
     # RANSAC Plane Segmentation
     seg = pcl_data.make_segmenter()
@@ -87,9 +88,18 @@ def pcl_callback(pcl_msg):
     # Extract inliers and outliers
     #pcl_table = pcl_data.extract(inliers, negative=False)
     pcl_objects = pcl_data.extract(inliers, negative=True)
+    
+
 
     # Euclidean Clustering
     white_objects = XYZRGB_to_XYZ(pcl_objects)
+        # Remove noise:
+    outlier_filter = white_objects.make_statistical_outlier_filter()
+    outlier_filter.set_mean_k(2)
+    outlier_filter.set_std_dev_mul_thresh(0.)
+    white_objects = outlier_filter.filter()
+
+    
     tree = white_objects.make_kdtree()
     ec = white_objects.make_EuclideanClusterExtraction()
     ec.set_ClusterTolerance(0.05)

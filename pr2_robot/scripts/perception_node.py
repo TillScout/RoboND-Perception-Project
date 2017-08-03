@@ -89,15 +89,16 @@ def pcl_callback(pcl_msg):
     #pcl_table = pcl_data.extract(inliers, negative=False)
     pcl_objects = pcl_data.extract(inliers, negative=True)
     
+    # Remove noise:
+    outlier_filter = pcl_objects.make_statistical_outlier_filter()
+    outlier_filter.set_mean_k(5)
+    outlier_filter.set_std_dev_mul_thresh(0.)
+    pcl_objects = outlier_filter.filter()
 
 
     # Euclidean Clustering
     white_objects = XYZRGB_to_XYZ(pcl_objects)
-        # Remove noise:
-    outlier_filter = white_objects.make_statistical_outlier_filter()
-    outlier_filter.set_mean_k(2)
-    outlier_filter.set_std_dev_mul_thresh(0.)
-    white_objects = outlier_filter.filter()
+    
 
     
     tree = white_objects.make_kdtree()
@@ -206,7 +207,12 @@ if __name__ == '__main__':
     pcl_objects_pub = rospy.Publisher("/pcl_objects", PointCloud2, queue_size=1)
     cluster_test_pub = rospy.Publisher("/pcl_clusters", PointCloud2, queue_size=1)
 
-    # TODO: Load Model From disk
+    # load model from disk
+    model = pickle.load(open('model_project.sav', 'rb'))
+    clf = model['classifier']
+    encoder = LabelEncoder()
+    encoder.classes_ = model['classes']
+    scaler = model['scaler']
 
     # Initialize color_list
     get_color_list.color_list = []

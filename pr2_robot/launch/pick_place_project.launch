@@ -16,7 +16,7 @@
 
   <!--Launch a gazebo world-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <!--TODO:Change the world name to load different tabletop setup-->
+    <!--Do not change the world name here, but set the world at the top!!!-->
     <arg name="world_name" value="$(find pr2_robot)/worlds/test$(arg world_no).world"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="paused" value="false"/>
@@ -42,7 +42,7 @@
   <node name="pr2_pick_place_server" pkg="pr2_robot" type="pr2_pick_place_server"
     respawn="false" output="screen"/>
 
-  <!--TODO:Change the list name based on the scene you have loaded-->
+  <!--Do not change the world name here, but set the world at the top!!! -->
   <rosparam command="load" file="$(find pr2_robot)/config/pick_list_$(arg world_no).yaml"/>
 
   <!--launch rviz-->

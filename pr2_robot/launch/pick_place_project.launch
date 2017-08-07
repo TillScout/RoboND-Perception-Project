@@ -1,5 +1,12 @@
 <launch>
-  <!--Include description and control launch files-->
+
+  <!-- THIS SETS THE WORLD, DO NOT CHANGE ELSEWHERE!!! -->
+  <arg name="world_no" value="1" />
+
+  <!-- set world number as parameter to access from inside the node -->
+  <param name="world" value="$(arg world_no)" />
+
+  <!-- Include description and control launch files -->
   <include file="$(find pr2_robot)/launch/robot_description.launch"/>
   <include file="$(find pr2_robot)/launch/robot_control.launch"/>
   <include file="$(find pr2_moveit)/launch/move_group.launch"/>
@@ -10,7 +17,7 @@
   <!--Launch a gazebo world-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <!--TODO:Change the world name to load different tabletop setup-->
-    <arg name="world_name" value="$(find pr2_robot)/worlds/test1.world"/>
+    <arg name="world_name" value="$(find pr2_robot)/worlds/test$(arg world_no).world"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="paused" value="false"/>
     <arg name="gui" value="true"/>
@@ -36,7 +43,7 @@
     respawn="false" output="screen"/>
 
   <!--TODO:Change the list name based on the scene you have loaded-->
-  <rosparam command="load" file="$(find pr2_robot)/config/pick_list_1.yaml"/>
+  <rosparam command="load" file="$(find pr2_robot)/config/pick_list_$(arg world_no).yaml"/>
 
   <!--launch rviz-->
   <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false"

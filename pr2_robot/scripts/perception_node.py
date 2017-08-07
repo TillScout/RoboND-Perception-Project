@@ -16,7 +16,7 @@ from sensor_stick.pcl_helper import *
 
 import rospy
 import tf
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import Float64
 from std_msgs.msg import Int32
 from std_msgs.msg import String
@@ -177,26 +177,90 @@ def pcl_callback(pcl_msg):
     # Suggested location for where to invoke your pr2_mover() function within pcl_callback()
     # Could add some logic to determine whether or not your object detections are robust
     # before calling pr2_mover()
-    """try:
-        pr2_mover(detected_objects_list)
+    try:
+        pr2_mover(detected_objects)
     except rospy.ROSInterruptException:
-        pass"""
+        pass
 
 # function to load parameters and request PickPlace service
 def pr2_mover(object_list):
 
-    # TODO: Initialize variables
+    # Initialize variables
+    labels = []
+    centroids = []
+    groups = []
+    names = []
+    dict_list = []
+    test_scene_num = Int32()
+    object_name = String()
+    arm_name = String()
+    pick_pose = Pose()
+    drop_pose = Pose()
 
-    # TODO: Get/Read parameters
+    # get parameters
+    pick_list = rospy.get_param("/object_list")
+    scene_number = rospy.get_param("world")
+    dropbox = rospy.get_param("/dropbox")
+    
+    test_scene_num.data = scene_number
 
-    # TODO: Parse parameters into individual variables
+    # Parse parameters into individual variables
+    for item in pick_list:
+        groups.append(item["group"])
+        names.append(item["name"])
+    
+    if dropbox[0]["group"] == "red":
+        rx, ry, rz = dropbox[0]["position"]
+        gx, gy, gz = dropbox[1]["position"]
+    else:
+        rx, ry, rz = dropbox[1]["position"]
+        gx, gy, gz = dropbox[0]["position"]
+    
 
     # TODO: Rotate PR2 in place to capture side tables for the collision map
 
-    # TODO: Loop through the pick list
+    # Loop through the object list
+    for item in object_list:
+        labels.append(item.label)
+        # Get the PointCloud for a given object and obtain it's centroid
+        points_arr = ros_to_pcl(item.cloud).to_array()
+        centroids.append(np.mean(points_arr, axis=0)[:3])
+    
+    objects = dict(zip(labels, centroids))
+    
+    # loop through pick list
+    for item in pick_list:
+        if item["name"] in labels:
+            
+            name = item["name"]
+            group = item["group"]
+            object_name.data = str(name)
+            
+            if group == "green":
+                arm_name.data = "right"
+                drop_pose.position = Point(gx, gy, gz)
+            else:
+                arm_name.data = "left"
+                drop_pose.position = Point(rx, ry, rz)
+            
+            centroid = objects[name]
+            x,y,z = tuple(centroid)
+            pick_pose.position = Point(float(x),float(y),float(z))
+        
+            yaml_dict = make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, drop_pose)
+            dict_list.append(yaml_dict)
 
-        # TODO: Get the PointCloud for a given object and obtain it's centroid
 
+
+    # Output your request parameters into output yaml file
+    yaml_filename = "result_world_" + str(scene_number)+".yaml"
+    send_to_yaml(yaml_filename, dict_list)
+
+"""
+        
+        
+        
+        
         # TODO: Create 'place_pose' for the object
 
         # TODO: Assign the arm to be used for pick_place
@@ -216,9 +280,7 @@ def pr2_mover(object_list):
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-
-    # TODO: Output your request parameters into output yaml file
-
+"""
 
 
 if __name__ == '__main__':
@@ -244,6 +306,7 @@ if __name__ == '__main__':
 
     # Initialize color_list
     get_color_list.color_list = []
+    
 
     # Spin while node is not shutdown
     while not rospy.is_shutdown():

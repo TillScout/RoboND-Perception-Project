@@ -6,8 +6,8 @@ import sklearn
 from sklearn.preprocessing import LabelEncoder
 import pickle
 from sensor_stick.srv import GetNormals
-from sensor_stick.features import compute_color_histograms
-from sensor_stick.features import compute_normal_histograms
+from features import compute_color_histograms
+from features import compute_normal_histograms
 from visualization_msgs.msg import Marker
 from sensor_stick.marker_tools import *
 from sensor_stick.msg import DetectedObjectsArray

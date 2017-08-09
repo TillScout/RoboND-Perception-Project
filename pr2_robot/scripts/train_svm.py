@@ -64,7 +64,7 @@ encoder = LabelEncoder()
 y_train = encoder.fit_transform(y_train)
 
 # Create classifier
-clf = svm.SVC(kernel='linear')
+clf = svm.SVC(kernel='linear')#, C=10000, gamma=0.001)
 
 
 
@@ -106,7 +106,7 @@ clf.fit(X=X_train, y=y_train)
 model = {'classifier': clf, 'classes': encoder.classes_, 'scaler': X_scaler}
 
 # Save classifier to disk
-pickle.dump(model, open('model_project.sav', 'wb'))
+pickle.dump(model, open('model_project_linear.sav', 'wb'))
 
 # Plot non-normalized confusion matrix
 plt.figure()

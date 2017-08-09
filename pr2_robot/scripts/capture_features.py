@@ -37,10 +37,11 @@ if __name__ == '__main__':
     # Disable gravity and delete the ground plane
     initial_setup()
     labeled_features = []
+    bad_samples = 0
 
     for model_name in models:
         spawn_model(model_name)
-        num_attempts = 50
+        num_attempts = 5000
         for i in range(num_attempts):
             # make five attempts to get a valid a point cloud then give up
             print "capturing", model_name, "attempt",i+1,"out of", num_attempts
@@ -63,6 +64,7 @@ if __name__ == '__main__':
                 # Check for invalid clouds.
                 if sample_cloud_arr.shape[0] == 0:
                     print('Invalid cloud detected')
+                    bad_samples += 1
                     try_count += 1
                 else:
                     sample_was_good = True
@@ -76,6 +78,6 @@ if __name__ == '__main__':
 
         delete_model()
 
-
+    print "number of bad samples:", bad_samples
     #pickle.dump(labeled_features, open('training_set.sav', 'wb'))
     pickle.dump(labeled_features, open('training_set_project.sav', 'wb'))

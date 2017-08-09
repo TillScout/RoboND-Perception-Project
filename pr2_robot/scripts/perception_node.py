@@ -253,7 +253,7 @@ def pr2_mover(object_list):
 
 
     # Output your request parameters into output yaml file
-    yaml_filename = "result_world_" + str(scene_number)+".yaml"
+    yaml_filename = "output_" + str(scene_number)+".yaml"
     send_to_yaml(yaml_filename, dict_list)
 
 """

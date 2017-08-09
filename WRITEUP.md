@@ -36,51 +36,46 @@ This was very straightforward as it was explained very well in the lessons. I im
 
 I did not have to change any parameters from doing the individual lessons to the project.
 
-# add screenshot!!!
+The filter that were applied were downsampling, passthrough (twice, once to remove the bottom of the table and once to remove the edges of the red and green boxes), RANSAC segmentation and an outlier filter to remove noise.
+
 
 #### 2. Complete Exercise 2 steps: Pipeline including clustering for segmentation implemented.  
 
-Again, very straightforward. I only had to tweak the parameters for clustering the objects.
-
-# add screenshot!!!
+Again, very straightforward. I only had to tweak the parameters for clustering the objects. The clustering appeared very stable to me, even though there was some residual noise that I could not remove with the outlier filter.
 
 #### 2. Complete Exercise 3 Steps.  Features extracted and SVM trained.  Object recognition implemented.
 
-Extracting the features was very slow on my PC. I decided to capture each object 50 times and to bin the colors into 64 bins and the normals into 32 bins.
+Extracting the features was very slow on my PC with the original settings. I then decided to also use a voxel filter to downsample the captured point clouds before capturing the features. After all this is also how it will be implemented in the recognition node. With this the speed was a lot better and I decided to capture each object 5000 times and bin the colors and normals into 32 bins.
 
-I switched the kernel of the SVM to "linear", but otherwise kept all other parameters on "auto" or undefined. I tried sklearn's `GridsearchCV` class to further optimize the SVM, but this gave only very slight improvement at best, so I decided to keep things simple.
+I switched the kernel of the SVM to "linear", but otherwise kept all other parameters on "auto" or undefined. With a smaller batch of captured objects I tried sklearn's `GridsearchCV` class to further optimize the SVM, but this gave only very slight improvement at best, so I decided to keep things simple.
 
-# add screenshot of confusion matrix and final result
+The rbf-kernel gave a better performance on the training/testing dataset, but performed less well on the actual scene. This is why then changed it to linear kernel.
 
+![confusion-matrix](pictures/confusion_matrices.png)
 
+Applying the trained SVM to the project was again very straightforward. I was able to accurately detect all the objects in the scene. In some instances, it got one object wrong or neglected one, but a second later that was fine again.
 
+This is the first scene:
+![scene 1](pictures/scene1.png)
 
+The second scene (soap2 and book labels not perfectly aligned though...):
+![scene 2](pictures/scene2.png)
 
-
-
-
-
-
-Here is an example of how to include an image in your writeup.
-
-![demo-1](https://user-images.githubusercontent.com/20687560/28748231-46b5b912-7467-11e7-8778-3095172b7b19.png)
-
-
-
-
-Here's | A | Snappy | Table
---- | --- | --- | ---
-1 | `highlight` | **bold** | 7.41
-2 | a | b | c
-3 | *italic* | text | 403
-4 | 2 | 3 | abcd
-
+And the third scene:
+![scene 3](pictures/scene3.png)
 
 ### Pick and Place Setup
 
 #### 1. For all three tabletop setups (`test*.world`), perform object recognition, then read in respective pick list (`pick_list_*.yaml`). Next construct the messages that would comprise a valid `PickPlace` request output them to `.yaml` format.
 
-And here's another image!
-![demo-2](https://user-images.githubusercontent.com/20687560/28748286-9f65680e-7468-11e7-83dc-f1a32380b89c.png)
+At first I loaded all the required parameters and initialized the variables. For the `test_scene_num` I modified the launch file such that it stores the scene number in the ROS parameter server. This way I did not have to do that manually, but could read the number with `rospy.get_param()`. Also this made changing the scene easier, as I only had to change one parameter in the launch file.
+Next I stored dropbox coordinates.
 
-Spend some time at the end to discuss your code, what techniques you used, what worked and why, where the implementation might fail and how you might improve it if you were going to pursue this project further.  
+And finally I could loop through the pick list. I was not entirely certain, what exactly the output file should include, but I decided to loop through the pick list and then construct the `PickPlace` request for all the objects in the scene that are also on the pick list. For the `pick_pose`, I calculated the centroid of the object as position and left the orientation piece undefined, i.e. all values zero.
+
+With the helper functions, I could then save everything in `.yaml`-files. The output files can be found in the `pr2_robot/scripts/`-folder.
+
+# Possibilities for improvement:
+I think that I could still improve on accuracy of the object recognition. The accuracy on the training/test set was below 90% with the linear kernel. I am not entirely sure why that was. People on Slack reported that they had more that 90% accuracy with a much smaller batch of captured features. A possibility might be to play more with the number of bins and the hyperparameters of the SVM. With the large number of features I decided not to do that.
+
+Also I am not entirely satisfied with the noise reduction of the point cloud. This could also be improved, though I tried quite a lot of parameters.
